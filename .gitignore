@@ -1,0 +1,18 @@
+.dart_tool/
+.packages
+.pub/
+build/
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.DS_Store
+
+# Android
+/.gradle
+/android/.gradle
+
+# iOS
+/ios/Flutter/Flutter.framework
+/ios/Flutter/Flutter.podspec
