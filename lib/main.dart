@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'app_state.dart';
+import 'theme.dart';
 import 'pages/home_page.dart';
 import 'pages/transactions_page.dart';
 import 'pages/savings_page.dart';
 import 'pages/settings_page.dart';
+import 'pages/splash_screen.dart';
 
 void main() => runApp(const MyApp());
 
@@ -18,24 +20,10 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           title: 'SavePesa',
           debugShowCheckedModeBanner: false,
-          theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color(0xFF1A73E8),
-              brightness: Brightness.light,
-            ),
-            useMaterial3: true,
-            fontFamily: 'Roboto',
-          ),
-          darkTheme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color(0xFF1A73E8),
-              brightness: Brightness.dark,
-            ),
-            useMaterial3: true,
-            fontFamily: 'Roboto',
-          ),
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
           themeMode: appState.themeMode,
-          home: const MainNavigation(),
+          home: const SplashScreen(),
         );
       },
     );
@@ -67,19 +55,35 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     return Scaffold(
       body: IndexedStack(index: _selectedIndex, children: _pages),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: _onItemTapped,
-        backgroundColor: cs.surface,
-        indicatorColor: cs.primaryContainer,
+        backgroundColor: Colors.white,
+        indicatorColor: const Color(0xFF8B1A2E).withOpacity(0.12),
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         destinations: const <NavigationDestination>[
-          NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.receipt_long_outlined), selectedIcon: Icon(Icons.receipt_long), label: 'Transactions'),
-          NavigationDestination(icon: Icon(Icons.savings_outlined), selectedIcon: Icon(Icons.savings), label: 'Savings'),
-          NavigationDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings), label: 'Settings'),
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home, color: Color(0xFF8B1A2E)),
+            label: 'Home',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.receipt_long_outlined),
+            selectedIcon: Icon(Icons.receipt_long, color: Color(0xFF8B1A2E)),
+            label: 'Transactions',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.flight_takeoff_outlined),
+            selectedIcon: Icon(Icons.flight_takeoff, color: Color(0xFF8B1A2E)),
+            label: 'Savings',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.manage_accounts_outlined),
+            selectedIcon: Icon(Icons.manage_accounts, color: Color(0xFF8B1A2E)),
+            label: 'Settings',
+          ),
         ],
       ),
     );

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../app_state.dart';
+import '../theme.dart';
+import '../widgets/tx_tile.dart';
+import '../widgets/summary_card.dart';
 
 class TransactionsPage extends StatefulWidget {
   const TransactionsPage({super.key});
@@ -45,14 +48,15 @@ class _TransactionsPageState extends State<TransactionsPage>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setSheetState) => Padding(
           padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            top: 20,
+            left: 24,
+            right: 24,
+            top: 12,
             bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
           ),
           child: Column(
@@ -61,154 +65,225 @@ class _TransactionsPageState extends State<TransactionsPage>
             children: [
               Center(
                 child: Container(
-                  width: 40,
+                  width: 36,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: AppColors.silver,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
-              Text('Add Transaction',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge
-                      ?.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
-
-              // Income / Expense toggle
+              const SizedBox(height: 24),
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => setSheetState(() => _isExpense = true),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        decoration: BoxDecoration(
-                          color: _isExpense ? Colors.red : Colors.transparent,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.red.shade300),
-                        ),
-                        child: Center(
-                          child: Text('Expense',
-                              style: TextStyle(
-                                  color: _isExpense ? Colors.white : Colors.red,
-                                  fontWeight: FontWeight.w600)),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => setSheetState(() => _isExpense = false),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        decoration: BoxDecoration(
-                          color: !_isExpense ? Colors.green : Colors.transparent,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.green.shade300),
-                        ),
-                        child: Center(
-                          child: Text('Income',
-                              style: TextStyle(
-                                  color: !_isExpense ? Colors.white : Colors.green,
-                                  fontWeight: FontWeight.w600)),
-                        ),
-                      ),
-                    ),
-                  ),
+                  const Text('NEW TRANSACTION',
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.5,
+                          color: AppColors.burgundy)),
+                  IconButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      icon: const Icon(Icons.close, size: 20)),
                 ],
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 20),
+
+              // Income / Expense toggle
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.offWhite,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                padding: const EdgeInsets.all(4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setSheetState(() => _isExpense = true),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: _isExpense
+                                ? AppColors.burgundy
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Center(
+                            child: Text('Expense',
+                                style: TextStyle(
+                                    color: _isExpense
+                                        ? Colors.white
+                                        : AppColors.burgundy.withOpacity(0.6),
+                                    fontWeight: _isExpense
+                                        ? FontWeight.w800
+                                        : FontWeight.w600)),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setSheetState(() => _isExpense = false),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: !_isExpense
+                                ? AppColors.burgundy
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Center(
+                            child: Text('Income',
+                                style: TextStyle(
+                                    color: !_isExpense
+                                        ? Colors.white
+                                        : AppColors.burgundy.withOpacity(0.6),
+                                    fontWeight: !_isExpense
+                                        ? FontWeight.w800
+                                        : FontWeight.w600)),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
 
               TextField(
                 controller: _titleCtrl,
+                style: const TextStyle(fontWeight: FontWeight.w600),
                 decoration: InputDecoration(
                   labelText: 'Title',
-                  prefixIcon: const Icon(Icons.label_outline),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: _amountCtrl,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: 'Amount (${appState.currency})',
-                  prefixIcon: const Icon(Icons.attach_money),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: _noteCtrl,
-                decoration: InputDecoration(
-                  labelText: 'Note (optional)',
-                  prefixIcon: const Icon(Icons.notes),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  hintText: 'What was this for?',
+                  prefixIcon: const Icon(Icons.description_outlined,
+                      color: AppColors.burgundy),
+                  filled: true,
+                  fillColor: AppColors.offWhite,
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none),
                 ),
               ),
               const SizedBox(height: 12),
+              TextField(
+                controller: _amountCtrl,
+                keyboardType: TextInputType.number,
+                style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.burgundy,
+                    fontSize: 18),
+                decoration: InputDecoration(
+                  labelText: 'Amount',
+                  prefixIcon: const Icon(Icons.wallet_outlined,
+                      color: AppColors.burgundy),
+                  suffixText: appState.currency,
+                  filled: true,
+                  fillColor: AppColors.offWhite,
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _noteCtrl,
+                decoration: InputDecoration(
+                  labelText: 'Additional Notes',
+                  prefixIcon: const Icon(Icons.notes_rounded,
+                      color: AppColors.burgundy),
+                  filled: true,
+                  fillColor: AppColors.offWhite,
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none),
+                ),
+              ),
+              const SizedBox(height: 24),
 
               // Category picker
-              Text('Category',
-                  style: Theme.of(context).textTheme.labelLarge),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: TxCategory.values.map((cat) {
-                  final selected = _selectedCategory == cat;
-                  return GestureDetector(
-                    onTap: () => setSheetState(() => _selectedCategory = cat),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 150),
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: selected ? cat.color : cat.color.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: cat.color.withOpacity(0.5)),
+              const Text('CATEGORY',
+                  style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.5,
+                      color: Colors.grey)),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 44,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: TxCategory.values.map((cat) {
+                    final selected = _selectedCategory == cat;
+                    return GestureDetector(
+                      onTap: () => setSheetState(() => _selectedCategory = cat),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        margin: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: selected ? AppColors.gold : Colors.white,
+                          borderRadius: BorderRadius.circular(22),
+                          border: Border.all(
+                              color:
+                                  selected ? AppColors.gold : AppColors.silver),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(cat.icon,
+                                size: 16,
+                                color: selected
+                                    ? Colors.white
+                                    : AppColors.burgundy),
+                            const SizedBox(width: 8),
+                            Text(cat.label,
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: selected
+                                        ? Colors.white
+                                        : AppColors.burgundy,
+                                    fontWeight: selected
+                                        ? FontWeight.w800
+                                        : FontWeight.w600)),
+                          ],
+                        ),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(cat.icon,
-                              size: 14,
-                              color: selected ? Colors.white : cat.color),
-                          const SizedBox(width: 4),
-                          Text(cat.label,
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  color: selected ? Colors.white : cat.color,
-                                  fontWeight: FontWeight.w600)),
-                        ],
-                      ),
-                    ),
-                  );
-                }).toList(),
+                    );
+                  }).toList(),
+                ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 32),
 
               SizedBox(
                 width: double.infinity,
-                child: FilledButton.icon(
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add Transaction'),
+                height: 56,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.burgundy,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
+                  ),
                   onPressed: () {
                     final title = _titleCtrl.text.trim();
-                    final raw = int.tryParse(
-                            _amountCtrl.text.trim().replaceAll(RegExp(r'[, ]'), '')) ??
-                        0;
+                    final rawStr =
+                        _amountCtrl.text.trim().replaceAll(RegExp(r'[, ]'), '');
+                    final raw = int.tryParse(rawStr) ?? 0;
                     if (title.isEmpty || raw == 0) return;
                     final amount = _isExpense ? -raw.abs() : raw.abs();
                     appState.addTransaction(title, amount, _selectedCategory,
-                        note: _noteCtrl.text.trim().isEmpty ? null : _noteCtrl.text.trim());
+                        note: _noteCtrl.text.trim().isEmpty
+                            ? null
+                            : _noteCtrl.text.trim());
                     Navigator.of(ctx).pop();
                   },
+                  child: const Text('CONFIRM TRANSACTION',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w800, letterSpacing: 1)),
                 ),
               ),
             ],
@@ -220,23 +295,29 @@ class _TransactionsPageState extends State<TransactionsPage>
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Transactions', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('TRANSACTIONS',
+            style: TextStyle(
+                fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.5)),
         bottom: TabBar(
           controller: _tabController,
+          indicatorColor: AppColors.gold,
+          indicatorWeight: 3,
+          labelStyle: const TextStyle(
+              fontWeight: FontWeight.w800, letterSpacing: 1, fontSize: 12),
+          unselectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.w500, letterSpacing: 1, fontSize: 12),
           tabs: const [
-            Tab(text: 'All'),
-            Tab(text: 'Summary'),
+            Tab(text: 'HISTORY'),
+            Tab(text: 'ANALYTICS'),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
         children: [
-          // ── All Transactions Tab ──────────────────────────────────────────
+          // ── History Tab ───────────────────────────────────────────────────
           AnimatedBuilder(
             animation: appState,
             builder: (context, _) {
@@ -249,50 +330,84 @@ class _TransactionsPageState extends State<TransactionsPage>
 
               return Column(
                 children: [
-                  // Search bar
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
-                    child: TextField(
-                      decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.search),
-                        hintText: 'Search transactions…',
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14)),
-                        filled: true,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                      ),
-                      onChanged: (v) => setState(() => _query = v),
-                    ),
-                  ),
-                  // Category filter chips
-                  SizedBox(
-                    height: 52,
-                    child: ListView(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      scrollDirection: Axis.horizontal,
+                  // Search & Category area
+                  Container(
+                    color: Colors.white,
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Column(
                       children: [
                         Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: FilterChip(
-                            label: const Text('All'),
-                            selected: _filterAll,
-                            onSelected: (_) => setState(() {
-                              _filterAll = true;
-                            }),
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                          child: TextField(
+                            decoration: InputDecoration(
+                              prefixIcon: const Icon(Icons.search_rounded,
+                                  color: AppColors.burgundy),
+                              hintText: 'Search your transactions...',
+                              filled: true,
+                              fillColor: AppColors.offWhite,
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide.none),
+                              contentPadding:
+                                  const EdgeInsets.symmetric(vertical: 0),
+                            ),
+                            onChanged: (v) => setState(() => _query = v),
                           ),
                         ),
-                        ...TxCategory.values.map((cat) => Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: FilterChip(
-                                avatar: Icon(cat.icon, size: 14, color: cat.color),
-                                label: Text(cat.label),
-                                selected: !_filterAll && _filterCategory == cat,
-                                onSelected: (_) => setState(() {
-                                  _filterAll = false;
-                                  _filterCategory = cat;
-                                }),
+                        SizedBox(
+                          height: 40,
+                          child: ListView(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            scrollDirection: Axis.horizontal,
+                            children: [
+                              ChoiceChip(
+                                label: const Text('All'),
+                                selected: _filterAll,
+                                onSelected: (_) =>
+                                    setState(() => _filterAll = true),
+                                selectedColor: AppColors.burgundy,
+                                labelStyle: TextStyle(
+                                    color: _filterAll
+                                        ? Colors.white
+                                        : AppColors.burgundy,
+                                    fontWeight: FontWeight.bold),
+                                backgroundColor: Colors.white,
+                                side: BorderSide(
+                                    color: _filterAll
+                                        ? AppColors.burgundy
+                                        : AppColors.silver),
+                                showCheckmark: false,
                               ),
-                            )),
+                              const SizedBox(width: 8),
+                              ...TxCategory.values.map((cat) => Padding(
+                                    padding: const EdgeInsets.only(right: 8),
+                                    child: ChoiceChip(
+                                      label: Text(cat.label),
+                                      selected:
+                                          !_filterAll && _filterCategory == cat,
+                                      onSelected: (_) => setState(() {
+                                        _filterAll = false;
+                                        _filterCategory = cat;
+                                      }),
+                                      selectedColor: AppColors.burgundy,
+                                      labelStyle: TextStyle(
+                                          color: (!_filterAll &&
+                                                  _filterCategory == cat)
+                                              ? Colors.white
+                                              : AppColors.burgundy,
+                                          fontWeight: FontWeight.bold),
+                                      backgroundColor: Colors.white,
+                                      side: BorderSide(
+                                          color: (!_filterAll &&
+                                                  _filterCategory == cat)
+                                              ? AppColors.burgundy
+                                              : AppColors.silver),
+                                      showCheckmark: false,
+                                    ),
+                                  )),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -304,74 +419,25 @@ class _TransactionsPageState extends State<TransactionsPage>
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(Icons.receipt_long_outlined,
-                                    size: 56, color: cs.onSurface.withOpacity(0.3)),
-                                const SizedBox(height: 12),
-                                Text('No transactions found',
+                                    size: 64, color: AppColors.silver),
+                                const SizedBox(height: 16),
+                                const Text('No records found',
                                     style: TextStyle(
-                                        color: cs.onSurface.withOpacity(0.5))),
+                                        color: Colors.grey,
+                                        fontWeight: FontWeight.w600)),
                               ],
                             ),
                           )
-                        : ListView.separated(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
+                        : ListView.builder(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
                             itemCount: filtered.length,
-                            separatorBuilder: (_, __) =>
-                                const Divider(height: 1, indent: 72),
                             itemBuilder: (context, index) {
                               final item = filtered[index];
-                              final isIncome = item.amount > 0;
-                              return Dismissible(
-                                key: ValueKey(item.id),
-                                background: Container(
-                                  color: Colors.red.shade400,
-                                  alignment: Alignment.centerLeft,
-                                  padding: const EdgeInsets.only(left: 20),
-                                  child: const Icon(Icons.delete, color: Colors.white),
-                                ),
-                                secondaryBackground: Container(
-                                  color: Colors.red.shade400,
-                                  alignment: Alignment.centerRight,
-                                  padding: const EdgeInsets.only(right: 20),
-                                  child: const Icon(Icons.delete, color: Colors.white),
-                                ),
-                                onDismissed: (_) =>
+                              return TxTile(
+                                tx: item,
+                                currency: appState.currency,
+                                onDelete: () =>
                                     appState.deleteTransaction(item.id),
-                                child: ListTile(
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 4),
-                                  leading: CircleAvatar(
-                                    backgroundColor:
-                                        item.category.color.withOpacity(0.15),
-                                    child: Icon(item.category.icon,
-                                        color: item.category.color, size: 20),
-                                  ),
-                                  title: Text(item.title,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.w600)),
-                                  subtitle: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        '${item.date.day}/${item.date.month}/${item.date.year}  •  ${item.category.label}',
-                                        style: const TextStyle(fontSize: 12),
-                                      ),
-                                      if (item.note != null)
-                                        Text(item.note!,
-                                            style: TextStyle(
-                                                fontSize: 11,
-                                                color: cs.onSurface.withOpacity(0.5),
-                                                fontStyle: FontStyle.italic)),
-                                    ],
-                                  ),
-                                  trailing: Text(
-                                    '${isIncome ? '+' : '-'}${appState.currency} ${item.amount.abs()}',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: isIncome ? Colors.green : Colors.red,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ),
                               );
                             },
                           ),
@@ -381,141 +447,196 @@ class _TransactionsPageState extends State<TransactionsPage>
             },
           ),
 
-          // ── Summary Tab ───────────────────────────────────────────────────
+          // ── Analytics Tab ──────────────────────────────────────────────────
           AnimatedBuilder(
             animation: appState,
             builder: (context, _) {
               final byCategory = appState.expenseByCategory;
               final total = appState.totalExpenses;
               return ListView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 children: [
-                  // Income vs Expense card
-                  Card(
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          _SummaryRow(
-                              label: 'Total Income',
-                              amount: appState.totalIncome,
-                              color: Colors.green,
-                              currency: appState.currency),
-                          const Divider(height: 20),
-                          _SummaryRow(
-                              label: 'Total Expenses',
-                              amount: appState.totalExpenses,
-                              color: Colors.red,
-                              currency: appState.currency),
-                          const Divider(height: 20),
-                          _SummaryRow(
-                              label: 'Net Balance',
-                              amount: appState.balance,
-                              color: appState.balance >= 0
-                                  ? Colors.green
-                                  : Colors.red,
-                              currency: appState.currency),
-                        ],
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [AppColors.burgundy, AppColors.burgundyDark],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Column(
+                      children: [
+                        _AnalyticRow(
+                            label: 'Total Inflow',
+                            amount: appState.totalIncome,
+                            color: AppColors.success,
+                            currency: appState.currency),
+                        const SizedBox(height: 16),
+                        _AnalyticRow(
+                            label: 'Total Outflow',
+                            amount: appState.totalExpenses,
+                            color: Colors.orangeAccent,
+                            currency: appState.currency),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Divider(color: Colors.white12),
+                        ),
+                        _AnalyticRow(
+                            label: 'Net Positioning',
+                            amount: appState.balance,
+                            color: AppColors.gold,
+                            currency: appState.currency,
+                            isBold: true),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Text('Expenses by Category',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium
-                          ?.copyWith(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 10),
-                  ...byCategory.entries.map((e) {
-                    final pct = total == 0 ? 0.0 : e.value / total;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(e.key.icon, size: 16, color: e.key.color),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(e.key.label,
+                  const SizedBox(height: 32),
+                  Row(
+                    children: [
+                      Container(
+                          width: 4,
+                          height: 18,
+                          decoration: BoxDecoration(
+                              color: AppColors.gold,
+                              borderRadius: BorderRadius.circular(2))),
+                      const SizedBox(width: 10),
+                      const Text('OUTFLOW BY CATEGORY',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 12,
+                              letterSpacing: 1.2,
+                              color: AppColors.burgundy)),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  if (byCategory.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.all(32),
+                      child: Center(
+                          child: Text('No analytical data available.',
+                              style: TextStyle(color: Colors.grey))),
+                    )
+                  else
+                    ...byCategory.entries.map((e) {
+                      final pct = total == 0 ? 0.0 : e.value / total;
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                              color: AppColors.silver.withOpacity(0.5)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                      color:
+                                          AppColors.burgundy.withOpacity(0.05),
+                                      shape: BoxShape.circle),
+                                  child: Icon(e.key.icon,
+                                      size: 16, color: AppColors.burgundy),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                    child: Text(e.key.label,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.w800,
+                                            color: AppColors.darkGrey))),
+                                Text('${appState.currency} ${e.value}',
                                     style: const TextStyle(
-                                        fontWeight: FontWeight.w500)),
-                              ),
-                              Text(
-                                '${appState.currency} ${e.value}',
-                                style: TextStyle(
-                                    color: e.key.color,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                '${(pct * 100).toStringAsFixed(0)}%',
-                                style: TextStyle(
-                                    fontSize: 12,
-                                    color: cs.onSurface.withOpacity(0.5)),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: LinearProgressIndicator(
-                              value: pct,
-                              minHeight: 6,
-                              backgroundColor: e.key.color.withOpacity(0.1),
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(e.key.color),
+                                        fontWeight: FontWeight.w900,
+                                        color: AppColors.burgundy)),
+                              ],
                             ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
+                            const SizedBox(height: 12),
+                            Stack(
+                              children: [
+                                Container(
+                                    height: 6,
+                                    decoration: BoxDecoration(
+                                        color: AppColors.offWhite,
+                                        borderRadius:
+                                            BorderRadius.circular(3))),
+                                FractionallySizedBox(
+                                  widthFactor: pct,
+                                  child: Container(
+                                      height: 6,
+                                      decoration: BoxDecoration(
+                                          color: AppColors.gold,
+                                          borderRadius:
+                                              BorderRadius.circular(3))),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: Text('${(pct * 100).toStringAsFixed(1)}%',
+                                  style: const TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey)),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
                 ],
               );
             },
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: _showAddSheet,
-        icon: const Icon(Icons.add),
-        label: const Text('Add'),
+        backgroundColor: AppColors.burgundy,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: const Icon(Icons.add),
       ),
     );
   }
 }
 
-class _SummaryRow extends StatelessWidget {
+class _AnalyticRow extends StatelessWidget {
   final String label;
   final int amount;
   final Color color;
   final String currency;
+  final bool isBold;
 
-  const _SummaryRow(
+  const _AnalyticRow(
       {required this.label,
       required this.amount,
       required this.color,
-      required this.currency});
+      required this.currency,
+      this.isBold = false});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label,
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(fontWeight: FontWeight.w500)),
+        Text(label.toUpperCase(),
+            style: TextStyle(
+                color: Colors.white.withOpacity(0.7),
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1)),
         Text(
           '$currency ${amount.abs().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}',
           style: TextStyle(
-              fontWeight: FontWeight.bold, color: color, fontSize: 15),
+              fontWeight: isBold ? FontWeight.w900 : FontWeight.w700,
+              color: isBold ? AppColors.gold : Colors.white,
+              fontSize: isBold ? 18 : 15),
         ),
       ],
     );

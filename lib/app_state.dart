@@ -1,44 +1,78 @@
 import 'package:flutter/material.dart';
+import 'models/notification.dart';
 
-enum TxCategory { food, transport, salary, shopping, health, entertainment, other }
+// ── Enums & Extensions ────────────────────────────────────────────────────────
+
+enum TxCategory {
+  food,
+  transport,
+  salary,
+  shopping,
+  health,
+  entertainment,
+  other
+}
 
 extension TxCategoryExt on TxCategory {
   String get label {
     switch (this) {
-      case TxCategory.food: return 'Food';
-      case TxCategory.transport: return 'Transport';
-      case TxCategory.salary: return 'Salary';
-      case TxCategory.shopping: return 'Shopping';
-      case TxCategory.health: return 'Health';
-      case TxCategory.entertainment: return 'Entertainment';
-      case TxCategory.other: return 'Other';
+      case TxCategory.food:
+        return 'Food';
+      case TxCategory.transport:
+        return 'Transport';
+      case TxCategory.salary:
+        return 'Salary';
+      case TxCategory.shopping:
+        return 'Shopping';
+      case TxCategory.health:
+        return 'Health';
+      case TxCategory.entertainment:
+        return 'Entertainment';
+      case TxCategory.other:
+        return 'Other';
     }
   }
 
   IconData get icon {
     switch (this) {
-      case TxCategory.food: return Icons.restaurant;
-      case TxCategory.transport: return Icons.directions_car;
-      case TxCategory.salary: return Icons.work;
-      case TxCategory.shopping: return Icons.shopping_bag;
-      case TxCategory.health: return Icons.local_hospital;
-      case TxCategory.entertainment: return Icons.movie;
-      case TxCategory.other: return Icons.category;
+      case TxCategory.food:
+        return Icons.restaurant;
+      case TxCategory.transport:
+        return Icons.directions_car;
+      case TxCategory.salary:
+        return Icons.work;
+      case TxCategory.shopping:
+        return Icons.shopping_bag;
+      case TxCategory.health:
+        return Icons.local_hospital;
+      case TxCategory.entertainment:
+        return Icons.movie;
+      case TxCategory.other:
+        return Icons.category;
     }
   }
 
   Color get color {
     switch (this) {
-      case TxCategory.food: return Colors.orange;
-      case TxCategory.transport: return Colors.blue;
-      case TxCategory.salary: return Colors.green;
-      case TxCategory.shopping: return Colors.purple;
-      case TxCategory.health: return Colors.red;
-      case TxCategory.entertainment: return Colors.pink;
-      case TxCategory.other: return Colors.grey;
+      case TxCategory.food:
+        return Colors.orange;
+      case TxCategory.transport:
+        return Colors.blue;
+      case TxCategory.salary:
+        return Colors.green;
+      case TxCategory.shopping:
+        return Colors.purple;
+      case TxCategory.health:
+        return Colors.red;
+      case TxCategory.entertainment:
+        return Colors.pink;
+      case TxCategory.other:
+        return Colors.grey;
     }
   }
 }
+
+// ── Models ────────────────────────────────────────────────────────────────────
 
 class TransactionItem {
   final String id;
@@ -78,89 +112,100 @@ class GoalItem {
   });
 }
 
+// ── Auth ──────────────────────────────────────────────────────────────────────
+
+class _UserRecord {
+  final String phone;
+  final String passwordHash;
+  final String name;
+  _UserRecord(
+      {required this.phone, required this.passwordHash, required this.name});
+}
+
+// ── AppState ──────────────────────────────────────────────────────────────────
+
 class AppState extends ChangeNotifier {
+  // ── Auth state ────────────────────────────────────────────────────────────
+  bool isLoggedIn = false;
+  String _phone = '';
+  String userName = '';
+  String get phone => _phone;
+
+  final List<_UserRecord> _users = [];
+
+  /// Register a new user. Returns null on success, error string on failure.
+  String? register(String phone, String name, String password) {
+    final cleaned = phone.replaceAll(RegExp(r'\s+'), '');
+    if (cleaned.length < 9) return 'Enter a valid phone number';
+    if (name.trim().isEmpty) return 'Name is required';
+    if (password.length < 6) return 'Password must be at least 6 characters';
+    if (_users.any((u) => u.phone == cleaned))
+      return 'Phone number already registered';
+
+    _users.add(_UserRecord(
+      phone: cleaned,
+      passwordHash: _hash(password),
+      name: name.trim(),
+    ));
+    return null;
+  }
+
+  /// Login an existing user. Returns null on success, error string on failure.
+  String? login(String phone, String password) {
+    final cleaned = phone.replaceAll(RegExp(r'\s+'), '');
+    final user = _users.cast<_UserRecord?>().firstWhere(
+          (u) => u!.phone == cleaned && u.passwordHash == _hash(password),
+          orElse: () => null,
+        );
+    if (user == null) return 'Invalid phone number or password';
+
+    _phone = user.phone;
+    userName = user.name;
+    isLoggedIn = true;
+    transactions.clear();
+    goals.clear();
+    notifications.clear();
+    addNotification('👋 Welcome back!', 'Ready to manage your finances today?', NotificationType.reminder);
+    addNotification('💡 Quick Tip', 'Set a savings goal to stay motivated!', NotificationType.reminder);
+    notifyListeners();
+    return null;
+  }
+
+  void logout() {
+    isLoggedIn = false;
+    _phone = '';
+    userName = '';
+    transactions.clear();
+    goals.clear();
+    notifyListeners();
+  }
+
+  // Simple deterministic hash (NOT for production — use bcrypt in real apps)
+  String _hash(String input) {
+    int h = 5381;
+    for (final c in input.codeUnits) {
+      h = ((h << 5) + h) + c;
+    }
+    return h.toRadixString(16);
+  }
+
+  // ── Preferences ───────────────────────────────────────────────────────────
   ThemeMode themeMode = ThemeMode.light;
-  String userName = 'Guest';
   String currency = 'KES';
 
-  final List<TransactionItem> transactions = <TransactionItem>[
-    TransactionItem(
-        id: 't1',
-        title: 'Monthly Salary',
-        amount: 55000,
-        date: DateTime(2026, 2, 1),
-        category: TxCategory.salary,
-        note: 'February salary'),
-    TransactionItem(
-        id: 't2',
-        title: 'Groceries',
-        amount: -3200,
-        date: DateTime(2026, 2, 5),
-        category: TxCategory.food,
-        note: 'Naivas supermarket'),
-    TransactionItem(
-        id: 't3',
-        title: 'Uber ride',
-        amount: -450,
-        date: DateTime(2026, 2, 8),
-        category: TxCategory.transport),
-    TransactionItem(
-        id: 't4',
-        title: 'Netflix',
-        amount: -1100,
-        date: DateTime(2026, 2, 10),
-        category: TxCategory.entertainment),
-    TransactionItem(
-        id: 't5',
-        title: 'Pharmacy',
-        amount: -800,
-        date: DateTime(2026, 2, 12),
-        category: TxCategory.health),
-    TransactionItem(
-        id: 't6',
-        title: 'Freelance project',
-        amount: 12000,
-        date: DateTime(2026, 2, 14),
-        category: TxCategory.salary,
-        note: 'Web design gig'),
-    TransactionItem(
-        id: 't7',
-        title: 'Clothes shopping',
-        amount: -4500,
-        date: DateTime(2026, 2, 15),
-        category: TxCategory.shopping),
-  ];
-
-  final List<GoalItem> goals = <GoalItem>[
-    GoalItem(
-        id: 'g1',
-        name: 'New Phone',
-        target: 30000,
-        saved: 12000,
-        icon: Icons.phone_android,
-        color: Colors.indigo,
-        deadline: DateTime(2026, 5, 1)),
-    GoalItem(
-        id: 'g2',
-        name: 'Holiday Trip',
-        target: 50000,
-        saved: 15000,
-        icon: Icons.flight,
-        color: Colors.teal,
-        deadline: DateTime(2026, 8, 15)),
-    GoalItem(
-        id: 'g3',
-        name: 'Emergency Fund',
-        target: 100000,
-        saved: 40000,
-        icon: Icons.shield,
-        color: Colors.green),
-  ];
+  // ── Data ──────────────────────────────────────────────────────────────────
+  final List<TransactionItem> transactions = [];
+  final List<GoalItem> goals = [];
+  final List<NotificationItem> notifications = [];
 
   // ── Computed ──────────────────────────────────────────────────────────────
   int get balance => transactions.fold<int>(0, (sum, t) => sum + t.amount);
-  int get totalIncome => transactions.where((t) => t.amount > 0).fold<int>(0, (s, t) => s + t.amount);
-  int get totalExpenses => transactions.where((t) => t.amount < 0).fold<int>(0, (s, t) => s + t.amount.abs());
+  int get totalIncome => transactions
+      .where((t) => t.amount > 0)
+      .fold<int>(0, (s, t) => s + t.amount);
+  int get totalExpenses => transactions
+      .where((t) => t.amount < 0)
+      .fold<int>(0, (s, t) => s + t.amount.abs());
   int get totalSaved => goals.fold<int>(0, (s, g) => s + g.saved);
 
   Map<TxCategory, int> get expenseByCategory {
@@ -172,7 +217,8 @@ class AppState extends ChangeNotifier {
   }
 
   // ── Transactions ──────────────────────────────────────────────────────────
-  void addTransaction(String title, int amount, TxCategory category, {String? note}) {
+  void addTransaction(String title, int amount, TxCategory category,
+      {String? note}) {
     transactions.insert(
       0,
       TransactionItem(
@@ -193,7 +239,10 @@ class AppState extends ChangeNotifier {
   }
 
   // ── Goals ─────────────────────────────────────────────────────────────────
-  void addGoal(String name, int target, {IconData icon = Icons.flag, Color color = Colors.blue, DateTime? deadline}) {
+  void addGoal(String name, int target,
+      {IconData icon = Icons.flag,
+      Color color = Colors.blue,
+      DateTime? deadline}) {
     goals.add(GoalItem(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       name: name,
@@ -232,6 +281,35 @@ class AppState extends ChangeNotifier {
     currency = c;
     notifyListeners();
   }
+
+  // ── Notifications ─────────────────────────────────────────────────────────
+  void addNotification(String title, String message, NotificationType type) {
+    notifications.insert(
+      0,
+      NotificationItem(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        title: title,
+        message: message,
+        timestamp: DateTime.now(),
+        type: type,
+      ),
+    );
+  }
+
+  void markNotificationRead(String id) {
+    final notif = notifications.firstWhere((n) => n.id == id);
+    notif.isRead = true;
+    notifyListeners();
+  }
+
+  void markAllNotificationsRead() {
+    for (var n in notifications) {
+      n.isRead = true;
+    }
+    notifyListeners();
+  }
+
+  int get unreadNotificationCount => notifications.where((n) => !n.isRead).length;
 }
 
 final AppState appState = AppState();

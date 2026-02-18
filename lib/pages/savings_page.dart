@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../app_state.dart';
+import '../theme.dart';
 
 class SavingsPage extends StatefulWidget {
   const SavingsPage({super.key});
@@ -9,15 +10,14 @@ class SavingsPage extends StatefulWidget {
 }
 
 class _SavingsPageState extends State<SavingsPage> {
-  // Available icon/color options for new goals
   static const List<IconData> _icons = [
-    Icons.phone_android, Icons.flight, Icons.shield, Icons.home,
+    Icons.flight_takeoff, Icons.hotel, Icons.beach_access, Icons.home,
     Icons.directions_car, Icons.school, Icons.favorite, Icons.laptop,
-    Icons.sports_soccer, Icons.restaurant, Icons.flag, Icons.star,
+    Icons.phone_android, Icons.watch, Icons.flag, Icons.star,
   ];
   static const List<Color> _colors = [
-    Colors.indigo, Colors.teal, Colors.green, Colors.orange,
-    Colors.red, Colors.purple, Colors.blue, Colors.pink,
+    AppColors.burgundy, AppColors.gold, Colors.teal, Colors.indigo,
+    Colors.deepOrange, Colors.blueGrey, Colors.brown, AppColors.burgundyLight,
   ];
 
   void _addGoal() {
@@ -30,61 +30,56 @@ class _SavingsPageState extends State<SavingsPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setSheetState) => Padding(
           padding: EdgeInsets.only(
-            left: 20, right: 20, top: 20,
+            left: 24, right: 24, top: 12,
             bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: Container(
-                  width: 40, height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text('New Savings Goal',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge
-                      ?.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
+              Center(child: Container(width: 36, height: 4, decoration: BoxDecoration(color: AppColors.silver, borderRadius: BorderRadius.circular(2)))),
+              const SizedBox(height: 24),
+              const Text('SET NEW DESTINATION', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1.5, color: AppColors.burgundy)),
+              const SizedBox(height: 24),
               TextField(
                 controller: nameCtrl,
+                style: const TextStyle(fontWeight: FontWeight.w600),
                 decoration: InputDecoration(
-                  labelText: 'Goal name',
-                  prefixIcon: const Icon(Icons.flag_outlined),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: targetCtrl,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: 'Target amount (${appState.currency})',
-                  prefixIcon: const Icon(Icons.attach_money),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  labelText: 'Destination Name',
+                  hintText: 'e.g., Summer in Paris',
+                  prefixIcon: const Icon(Icons.place_outlined, color: AppColors.burgundy),
+                  filled: true,
+                  fillColor: AppColors.offWhite,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                 ),
               ),
               const SizedBox(height: 12),
-
-              // Deadline picker
+              TextField(
+                controller: targetCtrl,
+                keyboardType: TextInputType.number,
+                style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.burgundy),
+                decoration: InputDecoration(
+                  labelText: 'Target Budget',
+                  prefixIcon: const Icon(Icons.savings_outlined, color: AppColors.burgundy),
+                  suffixText: appState.currency,
+                  filled: true,
+                  fillColor: AppColors.offWhite,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                ),
+              ),
+              const SizedBox(height: 8),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.calendar_today_outlined),
+                leading: const Icon(Icons.event_note_outlined, color: AppColors.burgundy),
                 title: Text(deadline == null
-                    ? 'Set deadline (optional)'
-                    : 'Deadline: ${deadline!.day}/${deadline!.month}/${deadline!.year}'),
+                    ? 'Target Date (Optional)'
+                    : 'Target: ${deadline!.day}/${deadline!.month}/${deadline!.year}',
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                 onTap: () async {
                   final picked = await showDatePicker(
                     context: ctx,
@@ -95,76 +90,49 @@ class _SavingsPageState extends State<SavingsPage> {
                   if (picked != null) setSheetState(() => deadline = picked);
                 },
               ),
-              const SizedBox(height: 8),
-
-              // Icon picker
-              Text('Icon', style: Theme.of(context).textTheme.labelLarge),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8, runSpacing: 8,
-                children: _icons.map((ic) {
-                  final sel = selectedIcon == ic;
-                  return GestureDetector(
-                    onTap: () => setSheetState(() => selectedIcon = ic),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 150),
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: sel ? selectedColor : selectedColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: selectedColor.withOpacity(0.4)),
-                      ),
-                      child: Icon(ic, size: 20,
-                          color: sel ? Colors.white : selectedColor),
-                    ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 12),
-
-              // Color picker
-              Text('Color', style: Theme.of(context).textTheme.labelLarge),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: _colors.map((c) {
-                  final sel = selectedColor == c;
-                  return GestureDetector(
-                    onTap: () => setSheetState(() => selectedColor = c),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 150),
-                      width: 32, height: 32,
-                      decoration: BoxDecoration(
-                        color: c,
-                        shape: BoxShape.circle,
-                        border: sel
-                            ? Border.all(color: Colors.white, width: 3)
-                            : null,
-                        boxShadow: sel
-                            ? [BoxShadow(color: c.withOpacity(0.5), blurRadius: 6)]
-                            : null,
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
               const SizedBox(height: 16),
-
+              const Text('REPRESENTATION ICON', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1, color: Colors.grey)),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 48,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: _icons.map((ic) {
+                    final sel = selectedIcon == ic;
+                    return GestureDetector(
+                      onTap: () => setSheetState(() => selectedIcon = ic),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        margin: const EdgeInsets.only(right: 8),
+                        width: 48,
+                        decoration: BoxDecoration(
+                          color: sel ? selectedColor : AppColors.offWhite,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Icon(ic, size: 20, color: sel ? Colors.white : AppColors.burgundy),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
-                child: FilledButton.icon(
-                  icon: const Icon(Icons.add),
-                  label: const Text('Create Goal'),
+                height: 56,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.burgundy,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
                   onPressed: () {
                     final name = nameCtrl.text.trim();
                     final target = int.tryParse(targetCtrl.text.trim()) ?? 0;
                     if (name.isEmpty || target <= 0) return;
-                    appState.addGoal(name, target,
-                        icon: selectedIcon,
-                        color: selectedColor,
-                        deadline: deadline);
+                    appState.addGoal(name, target, icon: selectedIcon, color: selectedColor, deadline: deadline);
                     Navigator.of(ctx).pop();
                   },
+                  child: const Text('ACTIVATE SAVINGS PLAN', style: TextStyle(fontWeight: FontWeight.w800, letterSpacing: 1)),
                 ),
               ),
             ],
@@ -179,41 +147,31 @@ class _SavingsPageState extends State<SavingsPage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: g.color.withOpacity(0.15),
-              child: Icon(g.icon, color: g.color),
-            ),
-            const SizedBox(width: 12),
-            Expanded(child: Text('Deposit to ${g.name}')),
-          ],
-        ),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text('TOP UP: ${g.name.toUpperCase()}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: AppColors.burgundy)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              '${appState.currency} ${g.saved} / ${g.target}',
-              style: TextStyle(color: g.color, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
+            Text('${appState.currency} ${g.saved} / ${g.target}', style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.gold)),
+            const SizedBox(height: 20),
             TextField(
               controller: ctrl,
               autofocus: true,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                labelText: 'Amount (${appState.currency})',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                labelText: 'Contribution Amount',
+                filled: true,
+                fillColor: AppColors.offWhite,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
               ),
             ),
           ],
         ),
         actions: [
-          TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel')),
-          FilledButton(
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Later', style: TextStyle(color: Colors.grey))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.burgundy, foregroundColor: Colors.white),
             onPressed: () {
               final amount = int.tryParse(ctrl.text.trim()) ?? 0;
               if (amount > 0) {
@@ -221,30 +179,7 @@ class _SavingsPageState extends State<SavingsPage> {
                 Navigator.of(ctx).pop();
               }
             },
-            child: const Text('Deposit'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _confirmDelete(GoalItem g) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete Goal?'),
-        content: Text('Are you sure you want to delete "${g.name}"?'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel')),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () {
-              appState.deleteGoal(g.id);
-              Navigator.of(ctx).pop();
-            },
-            child: const Text('Delete'),
+            child: const Text('Contribute'),
           ),
         ],
       ),
@@ -253,11 +188,9 @@ class _SavingsPageState extends State<SavingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Savings Goals', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('SAVINGS VOYAGES', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.5)),
       ),
       body: AnimatedBuilder(
         animation: appState,
@@ -265,227 +198,142 @@ class _SavingsPageState extends State<SavingsPage> {
           final goals = appState.goals;
           final totalSaved = appState.totalSaved;
           final totalTarget = goals.fold<int>(0, (s, g) => s + g.target);
+          final overallPct = totalTarget == 0 ? 0.0 : (totalSaved / totalTarget).clamp(0.0, 1.0);
 
           return CustomScrollView(
             slivers: [
-              // ── Overall savings summary ──────────────────────────────────
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Card(
-                    elevation: 0,
-                    color: cs.primaryContainer,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Total Saved',
-                              style: TextStyle(
-                                  color: cs.onPrimaryContainer.withOpacity(0.7),
-                                  fontSize: 13)),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${appState.currency} ${totalSaved.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}',
-                            style: TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w800,
-                                color: cs.onPrimaryContainer),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'of ${appState.currency} ${totalTarget.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')} target across ${goals.length} goals',
-                            style: TextStyle(
-                                color: cs.onPrimaryContainer.withOpacity(0.6),
-                                fontSize: 12),
-                          ),
-                          const SizedBox(height: 12),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(6),
-                            child: LinearProgressIndicator(
-                              value: totalTarget == 0
-                                  ? 0
-                                  : (totalSaved / totalTarget).clamp(0.0, 1.0),
-                              minHeight: 8,
-                              backgroundColor:
-                                  cs.onPrimaryContainer.withOpacity(0.1),
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  cs.primary),
-                            ),
-                          ),
-                        ],
+                  padding: const EdgeInsets.all(20),
+                  child: Container(
+                    padding: const EdgeInsets.all(28),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [AppColors.burgundy, AppColors.burgundyDark],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
+                      borderRadius: BorderRadius.circular(32),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('TOTAL ACCUMULATED', style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.5)),
+                        const SizedBox(height: 8),
+                        Text(
+                          '${appState.currency} ${totalSaved.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}',
+                          style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.white),
+                        ),
+                        const SizedBox(height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('${(overallPct * 100).toStringAsFixed(1)}% OF TOTAL TARGET', style: const TextStyle(color: AppColors.gold, fontSize: 10, fontWeight: FontWeight.w800)),
+                            Text('TARGET: ${appState.currency} ${totalTarget}', style: const TextStyle(color: Colors.white38, fontSize: 10)),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Stack(
+                          children: [
+                            Container(height: 8, decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), borderRadius: BorderRadius.circular(4))),
+                            FractionallySizedBox(
+                              widthFactor: overallPct,
+                              child: Container(height: 8, decoration: BoxDecoration(color: AppColors.gold, borderRadius: BorderRadius.circular(4))),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
 
-              // ── Goal cards ───────────────────────────────────────────────
               if (goals.isEmpty)
-                SliverToBoxAdapter(
+                const SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.all(48),
-                    child: Column(
-                      children: [
-                        Icon(Icons.savings_outlined,
-                            size: 64, color: cs.onSurface.withOpacity(0.25)),
-                        const SizedBox(height: 16),
-                        Text('No goals yet — tap + to create one',
-                            style: TextStyle(
-                                color: cs.onSurface.withOpacity(0.4))),
-                      ],
-                    ),
+                    padding: EdgeInsets.all(64),
+                    child: Center(child: Text('No active voyages. Begin your journey today.', style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic))),
                   ),
                 )
               else
                 SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
                         final g = goals[index];
                         final pct = (g.saved / g.target).clamp(0.0, 1.0);
-                        final remaining = g.target - g.saved;
-                        final daysLeft = g.deadline
-                            ?.difference(DateTime.now())
-                            .inDays;
-
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 14),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(18),
-                              side: BorderSide(
-                                  color: g.color.withOpacity(0.2))),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(color: AppColors.silver.withOpacity(0.5)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Row(
                                   children: [
-                                    CircleAvatar(
-                                      backgroundColor: g.color.withOpacity(0.15),
-                                      child: Icon(g.icon, color: g.color),
+                                    Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(color: g.color.withOpacity(0.08), borderRadius: BorderRadius.circular(16)),
+                                      child: Icon(g.icon, color: g.color, size: 24),
                                     ),
-                                    const SizedBox(width: 12),
+                                    const SizedBox(width: 16),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(g.name,
-                                              style: const TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.bold)),
-                                          if (daysLeft != null)
-                                            Text(
-                                              daysLeft > 0
-                                                  ? '$daysLeft days left'
-                                                  : 'Deadline passed',
-                                              style: TextStyle(
-                                                  fontSize: 12,
-                                                  color: daysLeft > 0
-                                                      ? cs.onSurface.withOpacity(0.5)
-                                                      : Colors.red),
-                                            ),
+                                          Text(g.name.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                                          Text('Remaining: ${appState.currency} ${g.target - g.saved}', style: TextStyle(fontSize: 11, color: Colors.grey[600])),
                                         ],
                                       ),
                                     ),
-                                    Text(
-                                      '${(pct * 100).toStringAsFixed(0)}%',
-                                      style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w800,
-                                          color: g.color),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(6),
-                                  child: LinearProgressIndicator(
-                                    value: pct,
-                                    minHeight: 8,
-                                    backgroundColor: g.color.withOpacity(0.1),
-                                    valueColor:
-                                        AlwaysStoppedAnimation<Color>(g.color),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      '${appState.currency} ${g.saved} saved',
-                                      style: TextStyle(
-                                          color: g.color,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 13),
-                                    ),
-                                    Text(
-                                      '${appState.currency} $remaining to go',
-                                      style: TextStyle(
-                                          color: cs.onSurface.withOpacity(0.5),
-                                          fontSize: 12),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 10),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: OutlinedButton.icon(
-                                        icon: const Icon(Icons.add, size: 16),
-                                        label: const Text('Deposit'),
-                                        style: OutlinedButton.styleFrom(
-                                          foregroundColor: g.color,
-                                          side: BorderSide(color: g.color),
-                                          shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(10)),
-                                        ),
-                                        onPressed: pct >= 1.0
-                                            ? null
-                                            : () => _deposit(g),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete_outline,
-                                          color: Colors.red),
-                                      onPressed: () => _confirmDelete(g),
-                                      tooltip: 'Delete goal',
-                                    ),
-                                  ],
-                                ),
-                                if (pct >= 1.0)
-                                  Container(
-                                    margin: const EdgeInsets.only(top: 8),
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: Colors.green.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: const Row(
-                                      mainAxisSize: MainAxisSize.min,
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.end,
                                       children: [
-                                        Icon(Icons.check_circle,
-                                            color: Colors.green, size: 16),
-                                        SizedBox(width: 6),
-                                        Text('Goal achieved! 🎉',
-                                            style: TextStyle(
-                                                color: Colors.green,
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 13)),
+                                        Text('${(pct * 100).toStringAsFixed(0)}%', style: TextStyle(fontWeight: FontWeight.w900, color: g.color, fontSize: 18)),
+                                        const Text('COMPLETE', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.grey)),
                                       ],
                                     ),
-                                  ),
-                              ],
-                            ),
+                                  ],
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 20),
+                                child: Stack(
+                                  children: [
+                                    Container(height: 4, decoration: BoxDecoration(color: AppColors.offWhite, borderRadius: BorderRadius.circular(2))),
+                                    FractionallySizedBox(
+                                      widthFactor: pct,
+                                      child: Container(height: 4, decoration: BoxDecoration(color: g.color, borderRadius: BorderRadius.circular(2))),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextButton.icon(
+                                        icon: const Icon(Icons.add, size: 16),
+                                        label: const Text('CONTRIBUTE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800)),
+                                        style: TextButton.styleFrom(foregroundColor: g.color),
+                                        onPressed: pct >= 1.0 ? null : () => _deposit(g),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete_outline, color: Colors.grey, size: 18),
+                                      onPressed: () => appState.deleteGoal(g.id),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         );
                       },
@@ -493,15 +341,17 @@ class _SavingsPageState extends State<SavingsPage> {
                     ),
                   ),
                 ),
-              const SliverToBoxAdapter(child: SizedBox(height: 80)),
+              const SliverToBoxAdapter(child: SizedBox(height: 100)),
             ],
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: _addGoal,
-        icon: const Icon(Icons.add),
-        label: const Text('New Goal'),
+        backgroundColor: AppColors.burgundy,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: const Icon(Icons.flight_takeoff),
       ),
     );
   }
