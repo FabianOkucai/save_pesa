@@ -50,8 +50,9 @@ class _LoginPageState extends State<LoginPage>
       _loading = true;
       _error = null;
     });
-    await Future.delayed(const Duration(milliseconds: 600)); // simulate network
-    final err = appState.login(_phoneCtrl.text.trim(), _passCtrl.text);
+
+    final err = await appState.login(_phoneCtrl.text.trim(), _passCtrl.text);
+
     if (!mounted) return;
     if (err != null) {
       setState(() {

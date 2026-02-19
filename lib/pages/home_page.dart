@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../app_state.dart';
 import '../theme.dart';
 import '../widgets/tx_tile.dart';
@@ -52,7 +54,9 @@ class _HomePageState extends State<HomePage> {
         .where((t) => now.difference(t.date).inDays <= 7)
         .fold<int>(0, (sum, t) => sum + t.amount);
     final prevWeek = appState.transactions
-        .where((t) => now.difference(t.date).inDays > 7 && now.difference(t.date).inDays <= 14)
+        .where((t) =>
+            now.difference(t.date).inDays > 7 &&
+            now.difference(t.date).inDays <= 14)
         .fold<int>(0, (sum, t) => sum + t.amount);
     return prevWeek == 0 ? 0 : ((lastWeek - prevWeek) / prevWeek * 100).round();
   }
@@ -70,7 +74,12 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
+            Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2))),
             const SizedBox(height: 24),
             _QuickActionTile(
               icon: Icons.add_circle_outline,
@@ -122,8 +131,13 @@ class _HomePageState extends State<HomePage> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: titleCtrl, decoration: const InputDecoration(labelText: 'Title')),
-              TextField(controller: amountCtrl, decoration: const InputDecoration(labelText: 'Amount'), keyboardType: TextInputType.number),
+              TextField(
+                  controller: titleCtrl,
+                  decoration: const InputDecoration(labelText: 'Title')),
+              TextField(
+                  controller: amountCtrl,
+                  decoration: const InputDecoration(labelText: 'Amount'),
+                  keyboardType: TextInputType.number),
               const SizedBox(height: 16),
               SwitchListTile(
                 title: const Text('Income'),
@@ -132,19 +146,25 @@ class _HomePageState extends State<HomePage> {
               ),
               DropdownButtonFormField<TxCategory>(
                 value: category,
-                items: TxCategory.values.map((c) => DropdownMenuItem(value: c, child: Text(c.label))).toList(),
+                items: TxCategory.values
+                    .map(
+                        (c) => DropdownMenuItem(value: c, child: Text(c.label)))
+                    .toList(),
                 onChanged: (v) => setState(() => category = v!),
                 decoration: const InputDecoration(labelText: 'Category'),
               ),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () {
                 final amount = int.tryParse(amountCtrl.text) ?? 0;
                 if (titleCtrl.text.isNotEmpty && amount > 0) {
-                  appState.addTransaction(titleCtrl.text, isIncome ? amount : -amount, category);
+                  appState.addTransaction(
+                      titleCtrl.text, isIncome ? amount : -amount, category);
                   appState.addNotification(
                     isIncome ? '💰 Income Added' : '💸 Expense Recorded',
                     '${titleCtrl.text}: ${appState.currency} $amount',
@@ -172,12 +192,19 @@ class _HomePageState extends State<HomePage> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Goal Name')),
-            TextField(controller: targetCtrl, decoration: const InputDecoration(labelText: 'Target Amount'), keyboardType: TextInputType.number),
+            TextField(
+                controller: nameCtrl,
+                decoration: const InputDecoration(labelText: 'Goal Name')),
+            TextField(
+                controller: targetCtrl,
+                decoration: const InputDecoration(labelText: 'Target Amount'),
+                keyboardType: TextInputType.number),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               final target = int.tryParse(targetCtrl.text) ?? 0;
@@ -228,7 +255,10 @@ class _HomePageState extends State<HomePage> {
                   stretch: true,
                   backgroundColor: AppColors.burgundy,
                   flexibleSpace: FlexibleSpaceBar(
-                    stretchModes: const [StretchMode.zoomBackground, StretchMode.blurBackground],
+                    stretchModes: const [
+                      StretchMode.zoomBackground,
+                      StretchMode.blurBackground
+                    ],
                     background: Stack(
                       fit: StackFit.expand,
                       children: [
@@ -237,7 +267,10 @@ class _HomePageState extends State<HomePage> {
                             gradient: LinearGradient(
                               begin: Alignment.topRight,
                               end: Alignment.bottomLeft,
-                              colors: [AppColors.burgundy, AppColors.burgundyDark],
+                              colors: [
+                                AppColors.burgundy,
+                                AppColors.burgundyDark
+                              ],
                             ),
                           ),
                         ),
@@ -251,160 +284,265 @@ class _HomePageState extends State<HomePage> {
                         ),
                         SafeArea(
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 24),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                    Row(
                                       children: [
-                                        Text(
-                                          'WELCOME BACK',
-                                          style: TextStyle(
-                                            color: Colors.white.withOpacity(0.6),
-                                            fontSize: 10,
-                                            letterSpacing: 2,
-                                            fontWeight: FontWeight.bold,
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: AppColors.gold
+                                                    .withOpacity(0.3),
+                                                blurRadius: 10,
+                                                spreadRadius: 2,
+                                              )
+                                            ],
+                                          ),
+                                          child: CircleAvatar(
+                                            radius: 24,
+                                            backgroundColor: AppColors.gold,
+                                            child: CircleAvatar(
+                                              radius: 22,
+                                              backgroundColor:
+                                                  AppColors.burgundyLight,
+                                              child: appState.profilePic != null
+                                                  ? ClipOval(
+                                                      child: Image.memory(
+                                                        base64Decode(appState
+                                                            .profilePic!),
+                                                        width: 44,
+                                                        height: 44,
+                                                        fit: BoxFit.cover,
+                                                      ),
+                                                    )
+                                                  : Text(
+                                                      appState.userName
+                                                              .isNotEmpty
+                                                          ? appState.userName[0]
+                                                              .toUpperCase()
+                                                          : 'U',
+                                                      style: const TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 20,
+                                                          fontWeight:
+                                                              FontWeight.bold),
+                                                    ),
+                                            ),
                                           ),
                                         ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          appState.userName.toUpperCase(),
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w800,
-                                            letterSpacing: 0.5,
-                                          ),
+                                        const SizedBox(width: 14),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'WELCOME BACK',
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                color: Colors.white
+                                                    .withOpacity(0.6),
+                                                fontSize: 10,
+                                                letterSpacing: 2.5,
+                                                fontWeight: FontWeight.w800,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              appState.userName,
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                color: Colors.white,
+                                                fontSize: 22,
+                                                fontWeight: FontWeight.w900,
+                                                letterSpacing: -0.5,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
                                     GestureDetector(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(builder: (_) => const NotificationsPage()),
-                                        );
-                                      },
+                                      onTap: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (_) =>
+                                                const NotificationsPage()),
+                                      ),
                                       child: Stack(
                                         children: [
                                           Container(
-                                            padding: const EdgeInsets.all(10),
+                                            padding: const EdgeInsets.all(12),
                                             decoration: BoxDecoration(
-                                              color: Colors.white.withOpacity(0.1),
-                                              borderRadius: BorderRadius.circular(12),
+                                              color: Colors.white
+                                                  .withOpacity(0.12),
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                              border: Border.all(
+                                                  color: Colors.white
+                                                      .withOpacity(0.1)),
                                             ),
-                                            child: const Icon(Icons.notifications_outlined, color: Colors.white, size: 24),
+                                            child: const Icon(
+                                                Icons
+                                                    .notifications_none_rounded,
+                                                color: Colors.white,
+                                                size: 24),
                                           ),
-                                          if (appState.unreadNotificationCount > 0)
+                                          if (appState.unreadNotificationCount >
+                                              0)
                                             Positioned(
-                                              right: 0,
-                                              top: 0,
+                                              right: 4,
+                                              top: 4,
                                               child: Container(
-                                                padding: const EdgeInsets.all(4),
+                                                width: 10,
+                                                height: 10,
                                                 decoration: const BoxDecoration(
                                                   color: AppColors.error,
                                                   shape: BoxShape.circle,
-                                                ),
-                                                constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
-                                                child: Text(
-                                                  '${appState.unreadNotificationCount}',
-                                                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                                                  textAlign: TextAlign.center,
                                                 ),
                                               ),
                                             ),
                                         ],
                                       ),
                                     ),
-                                    const SizedBox(width: 12),
-                                    GestureDetector(
-                                      onTap: () {
-                                        // Navigate to settings
-                                      },
-                                      child: Container(
-                                        padding: const EdgeInsets.all(2),
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          border: Border.all(color: AppColors.gold, width: 2),
-                                        ),
-                                        child: CircleAvatar(
-                                          radius: 22,
-                                          backgroundColor: AppColors.burgundyLight,
-                                          child: Text(
-                                            appState.userName.isNotEmpty ? appState.userName[0].toUpperCase() : 'U',
-                                            style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
                                   ],
                                 ),
                                 const Spacer(),
+                                // Glassmorphic Balance Card
                                 Container(
-                                  padding: const EdgeInsets.all(24),
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(28),
                                   decoration: BoxDecoration(
                                     color: Colors.white.withOpacity(0.12),
-                                    borderRadius: BorderRadius.circular(24),
-                                    border: Border.all(color: Colors.white.withOpacity(0.1)),
+                                    borderRadius: BorderRadius.circular(32),
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.15),
+                                      width: 1.5,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.1),
+                                        blurRadius: 30,
+                                        offset: const Offset(0, 15),
+                                      ),
+                                    ],
                                   ),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
                                           Text(
-                                            'TOTAL SAVINGS BALANCE',
-                                            style: TextStyle(
-                                              color: Colors.white.withOpacity(0.7),
+                                            'AVAILABLE BALANCE',
+                                            style: GoogleFonts.plusJakartaSans(
+                                              color:
+                                                  Colors.white.withOpacity(0.7),
                                               fontSize: 11,
-                                              letterSpacing: 1.2,
-                                              fontWeight: FontWeight.w600,
+                                              letterSpacing: 1.5,
+                                              fontWeight: FontWeight.w800,
                                             ),
                                           ),
-                                          const Icon(Icons.account_balance_wallet_outlined, color: AppColors.gold, size: 20),
+                                          Icon(
+                                            Icons
+                                                .account_balance_wallet_rounded,
+                                            color:
+                                                AppColors.gold.withOpacity(0.8),
+                                            size: 20,
+                                          ),
                                         ],
                                       ),
-                                      const SizedBox(height: 12),
+                                      const SizedBox(height: 14),
                                       Row(
-                                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.baseline,
                                         textBaseline: TextBaseline.alphabetic,
                                         children: [
                                           Text(
                                             appState.currency,
-                                            style: const TextStyle(
+                                            style: GoogleFonts.plusJakartaSans(
                                               color: AppColors.gold,
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w800,
                                             ),
                                           ),
                                           const SizedBox(width: 8),
-                                          Text(
-                                            appState.balance.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},'),
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 38,
-                                              fontWeight: FontWeight.w900,
-                                              letterSpacing: -0.5,
+                                          Expanded(
+                                            child: Text(
+                                              appState.balance
+                                                  .toString()
+                                                  .replaceAllMapped(
+                                                      RegExp(
+                                                          r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                                                      (m) => '${m[1]},'),
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                color: Colors.white,
+                                                fontSize: 42,
+                                                fontWeight: FontWeight.w900,
+                                                letterSpacing: -1.0,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
                                           if (trend != 0) ...[
-                                            const SizedBox(width: 8),
-                                            Icon(
-                                              trend > 0 ? Icons.trending_up : Icons.trending_down,
-                                              color: trend > 0 ? AppColors.success : AppColors.error,
-                                              size: 20,
-                                            ),
-                                            Text(
-                                              '${trend.abs()}%',
-                                              style: TextStyle(
-                                                color: trend > 0 ? AppColors.success : AppColors.error,
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.bold,
+                                            const SizedBox(width: 12),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 10,
+                                                      vertical: 6),
+                                              decoration: BoxDecoration(
+                                                color: trend > 0
+                                                    ? AppColors.success
+                                                        .withOpacity(0.2)
+                                                    : AppColors.error
+                                                        .withOpacity(0.2),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                border: Border.all(
+                                                    color: trend > 0
+                                                        ? AppColors.success
+                                                            .withOpacity(0.3)
+                                                        : AppColors.error
+                                                            .withOpacity(0.3)),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    trend > 0
+                                                        ? Icons.trending_up
+                                                        : Icons.trending_down,
+                                                    color: trend > 0
+                                                        ? AppColors.success
+                                                        : AppColors.error,
+                                                    size: 16,
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    '${trend.abs()}%',
+                                                    style: GoogleFonts
+                                                        .plusJakartaSans(
+                                                      color: trend > 0
+                                                          ? AppColors.success
+                                                          : AppColors.error,
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w800,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
                                           ],
@@ -429,19 +567,27 @@ class _HomePageState extends State<HomePage> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [AppColors.gold.withOpacity(0.1), AppColors.burgundy.withOpacity(0.05)],
+                        colors: [
+                          AppColors.gold.withOpacity(0.1),
+                          AppColors.burgundy.withOpacity(0.05)
+                        ],
                       ),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+                      border:
+                          Border.all(color: AppColors.gold.withOpacity(0.3)),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.lightbulb_outline, color: AppColors.gold, size: 24),
+                        const Icon(Icons.lightbulb_outline,
+                            color: AppColors.gold, size: 24),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             _getMotivationalMessage(),
-                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.burgundy),
+                            style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.burgundy),
                           ),
                         ),
                       ],
@@ -526,7 +672,8 @@ class _HomePageState extends State<HomePage> {
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: AppColors.silver.withOpacity(0.3)),
+                                  border: Border.all(
+                                      color: AppColors.silver.withOpacity(0.3)),
                                   boxShadow: [
                                     BoxShadow(
                                       color: Colors.black.withOpacity(0.03),
@@ -544,9 +691,11 @@ class _HomePageState extends State<HomePage> {
                                           padding: const EdgeInsets.all(8),
                                           decoration: BoxDecoration(
                                             color: goal.color.withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(8),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
                                           ),
-                                          child: Icon(goal.icon, color: goal.color, size: 20),
+                                          child: Icon(goal.icon,
+                                              color: goal.color, size: 20),
                                         ),
                                         const Spacer(),
                                         Text(
@@ -562,14 +711,18 @@ class _HomePageState extends State<HomePage> {
                                     const SizedBox(height: 12),
                                     Text(
                                       goal.name,
-                                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                                      style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
                                       '${appState.currency} ${goal.saved} / ${goal.target}',
-                                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                                      style: TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.grey[600]),
                                     ),
                                     const Spacer(),
                                     ClipRRect(
@@ -625,7 +778,8 @@ class _HomePageState extends State<HomePage> {
                     child: SizedBox(
                       height: 100,
                       child: ListView(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 16),
                         scrollDirection: Axis.horizontal,
                         children: appState.expenseByCategory.entries.map((e) {
                           return _CategoryChip(
@@ -635,7 +789,8 @@ class _HomePageState extends State<HomePage> {
                             isSelected: _categoryFilter == e.key,
                             onTap: () {
                               setState(() {
-                                _categoryFilter = _categoryFilter == e.key ? null : e.key;
+                                _categoryFilter =
+                                    _categoryFilter == e.key ? null : e.key;
                               });
                             },
                           );
@@ -688,7 +843,8 @@ class _HomePageState extends State<HomePage> {
                             _FilterChip(
                               label: 'Month',
                               isSelected: _timeFilter == 'Month',
-                              onTap: () => setState(() => _timeFilter = 'Month'),
+                              onTap: () =>
+                                  setState(() => _timeFilter = 'Month'),
                             ),
                           ],
                         ),
@@ -702,16 +858,21 @@ class _HomePageState extends State<HomePage> {
                       padding: const EdgeInsets.all(48),
                       child: Column(
                         children: [
-                          Icon(Icons.receipt_long_outlined, size: 64, color: Colors.grey[300]),
+                          Icon(Icons.receipt_long_outlined,
+                              size: 64, color: Colors.grey[300]),
                           const SizedBox(height: 16),
                           Text(
                             'No transactions yet',
-                            style: TextStyle(color: Colors.grey[600], fontSize: 16, fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'Tap the + button to add your first transaction',
-                            style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                            style: TextStyle(
+                                color: Colors.grey[400], fontSize: 12),
                             textAlign: TextAlign.center,
                           ),
                         ],
@@ -763,7 +924,10 @@ class _CategoryChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected ? AppColors.burgundy : Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isSelected ? AppColors.burgundy : AppColors.silver.withOpacity(0.5)),
+          border: Border.all(
+              color: isSelected
+                  ? AppColors.burgundy
+                  : AppColors.silver.withOpacity(0.5)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.01),
@@ -777,10 +941,14 @@ class _CategoryChip extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: isSelected ? Colors.white.withOpacity(0.2) : AppColors.burgundy.withOpacity(0.05),
+                color: isSelected
+                    ? Colors.white.withOpacity(0.2)
+                    : AppColors.burgundy.withOpacity(0.05),
                 shape: BoxShape.circle,
               ),
-              child: Icon(category.icon, color: isSelected ? Colors.white : AppColors.burgundy, size: 16),
+              child: Icon(category.icon,
+                  color: isSelected ? Colors.white : AppColors.burgundy,
+                  size: 16),
             ),
             const SizedBox(width: 10),
             Column(
@@ -817,7 +985,8 @@ class _FilterChip extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _FilterChip({required this.label, required this.isSelected, required this.onTap});
+  const _FilterChip(
+      {required this.label, required this.isSelected, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -829,7 +998,8 @@ class _FilterChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected ? AppColors.burgundy : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: isSelected ? AppColors.burgundy : Colors.grey[300]!),
+          border: Border.all(
+              color: isSelected ? AppColors.burgundy : Colors.grey[300]!),
         ),
         child: Text(
           label,

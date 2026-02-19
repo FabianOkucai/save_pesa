@@ -55,9 +55,10 @@ class _RegisterPageState extends State<RegisterPage>
       _loading = true;
       _error = null;
     });
-    await Future.delayed(const Duration(milliseconds: 600));
-    final err = appState.register(
+
+    final err = await appState.register(
         _phoneCtrl.text.trim(), _nameCtrl.text.trim(), _passCtrl.text);
+
     if (!mounted) return;
     if (err != null) {
       setState(() {
@@ -66,7 +67,8 @@ class _RegisterPageState extends State<RegisterPage>
       });
     } else {
       // Auto-login after registration
-      appState.login(_phoneCtrl.text.trim(), _passCtrl.text);
+      await appState.login(_phoneCtrl.text.trim(), _passCtrl.text);
+      if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const OnboardingPage()),
         (_) => false,

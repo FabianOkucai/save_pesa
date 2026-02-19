@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../app_state.dart';
 import '../theme.dart';
+import '../media_service.dart';
 import 'login_page.dart';
+import 'dart:convert';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -91,23 +93,39 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   child: Row(
                     children: [
-                      Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.15),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: AppColors.gold, width: 2),
-                        ),
-                        child: Center(
-                          child: Text(
-                            appState.userName.isNotEmpty
-                                ? appState.userName[0].toUpperCase()
-                                : 'G',
-                            style: const TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.white),
+                      GestureDetector(
+                        onTap: () async {
+                          final b64 =
+                              await MediaService.instance.pickProfileImage();
+                          if (b64 != null) appState.updateProfilePic(b64);
+                        },
+                        child: Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.15),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppColors.gold, width: 2),
+                          ),
+                          child: Center(
+                            child: appState.profilePic != null
+                                ? ClipOval(
+                                    child: Image.memory(
+                                      base64Decode(appState.profilePic!),
+                                      width: 64,
+                                      height: 64,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  )
+                                : Text(
+                                    appState.userName.isNotEmpty
+                                        ? appState.userName[0].toUpperCase()
+                                        : 'G',
+                                    style: const TextStyle(
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.white),
+                                  ),
                           ),
                         ),
                       ),
@@ -257,6 +275,18 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   );
                 },
+              ),
+
+              // ── Biometrics ───────────────────────────────────────────────
+              _SettingsTile(
+                icon: Icons.fingerprint,
+                title: 'Security',
+                subtitle: 'Biometric Lock',
+                trailing: Switch(
+                  value: appState.isBiometricEnabled,
+                  onChanged: (v) => appState.setBiometricEnabled(v),
+                  activeColor: AppColors.burgundy,
+                ),
               ),
 
               const SizedBox(height: 16),

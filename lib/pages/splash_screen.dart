@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../theme.dart';
+import '../app_state.dart';
+import '../main.dart';
+import '../security_service.dart';
 import 'login_page.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -25,18 +28,40 @@ class _SplashScreenState extends State<SplashScreen>
         .animate(CurvedAnimation(parent: _ctrl, curve: Curves.elasticOut));
     _ctrl.forward();
 
-    Future.delayed(const Duration(milliseconds: 2500), () {
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          PageRouteBuilder(
-            pageBuilder: (_, __, ___) => const LoginPage(),
-            transitionsBuilder: (_, anim, __, child) =>
-                FadeTransition(opacity: anim, child: child),
-            transitionDuration: const Duration(milliseconds: 600),
-          ),
-        );
+    _handleNavigation();
+  }
+
+  Future<void> _handleNavigation() async {
+    await Future.delayed(const Duration(milliseconds: 2000));
+    if (!mounted) return;
+
+    if (appState.isLoggedIn) {
+      // WhatsApp-like persistent login + Biometric check if enabled
+      bool authenticated = true;
+      if (appState.isBiometricEnabled) {
+        authenticated = await SecurityService.instance.authenticate();
       }
-    });
+
+      if (authenticated && mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const MainNavigation()),
+        );
+      } else if (mounted) {
+        // Stay here or show retry if biometric was canceled
+        setState(() {
+          // You could show a "Tap to retry" button here
+        });
+      }
+    } else {
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (_, __, ___) => const LoginPage(),
+          transitionsBuilder: (_, anim, __, child) =>
+              FadeTransition(opacity: anim, child: child),
+          transitionDuration: const Duration(milliseconds: 600),
+        ),
+      );
+    }
   }
 
   @override

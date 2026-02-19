@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../app_state.dart';
 import '../theme.dart';
 import '../models/notification.dart';
+import '../ai_service.dart';
 
 class NotificationsPage extends StatelessWidget {
   const NotificationsPage({super.key});
@@ -9,9 +11,11 @@ class NotificationsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppColors.offWhite,
       appBar: AppBar(
-        title: const Text('Notifications', style: TextStyle(fontWeight: FontWeight.w800)),
+        title: Text('NOTIFICATIONS',
+            style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.5)),
         backgroundColor: AppColors.burgundy,
         foregroundColor: Colors.white,
         actions: [
@@ -20,7 +24,11 @@ class NotificationsPage extends StatelessWidget {
               onPressed: () {
                 appState.markAllNotificationsRead();
               },
-              child: const Text('Mark all read', style: TextStyle(color: AppColors.gold, fontWeight: FontWeight.bold)),
+              child: Text('Mark all read',
+                  style: GoogleFonts.plusJakartaSans(
+                      color: AppColors.gold,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13)),
             ),
         ],
       ),
@@ -32,23 +40,112 @@ class NotificationsPage extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.notifications_off_outlined, size: 80, color: Colors.grey[300]),
+                  Icon(Icons.notifications_off_outlined,
+                      size: 80, color: Colors.grey[300]),
                   const SizedBox(height: 16),
-                  Text('No notifications yet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.grey[600])),
+                  Text('No notifications yet',
+                      style: GoogleFonts.plusJakartaSans(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.grey[500])),
                   const SizedBox(height: 8),
-                  Text('We\'ll notify you about important updates', style: TextStyle(fontSize: 13, color: Colors.grey[400])),
+                  Text('We\'ll notify you about important updates',
+                      style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          color: Colors.grey[400],
+                          fontWeight: FontWeight.w500)),
                 ],
               ),
             );
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: appState.notifications.length,
-            itemBuilder: (context, index) {
-              final notif = appState.notifications[index];
-              return _NotificationCard(notification: notif);
-            },
+          return ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              // ── AI Advisor section ──
+              FutureBuilder<String>(
+                future: AIService.instance
+                    .getFinancialAdvice(appState.transactions, appState.goals),
+                builder: (context, snapshot) {
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 32),
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E1E26),
+                      borderRadius: BorderRadius.circular(28),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: AppColors.gold.withOpacity(0.15),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.psychology_outlined,
+                                  color: AppColors.gold, size: 20),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'AI FINANCIAL ADVISOR',
+                              style: GoogleFonts.plusJakartaSans(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 11,
+                                  letterSpacing: 1.5),
+                            ),
+                            const Spacer(),
+                            const Icon(Icons.auto_awesome,
+                                color: AppColors.gold, size: 14),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        if (snapshot.connectionState == ConnectionState.waiting)
+                          const Center(
+                              child: Padding(
+                            padding: EdgeInsets.all(20),
+                            child: SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(
+                                    color: AppColors.gold, strokeWidth: 2)),
+                          ))
+                        else
+                          Text(
+                            snapshot.data ?? 'Analyzing financial data...',
+                            style: GoogleFonts.plusJakartaSans(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 13,
+                              height: 1.6,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              Text('GENERAL UPDATES',
+                  style: GoogleFonts.plusJakartaSans(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.5,
+                      color: Colors.grey)),
+              const SizedBox(height: 16),
+              ...appState.notifications
+                  .map((notif) => _NotificationCard(notification: notif)),
+              const SizedBox(height: 100),
+            ],
           );
         },
       ),
@@ -75,40 +172,47 @@ class _NotificationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: notification.isRead ? Colors.white : AppColors.gold.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(16),
+        color: notification.isRead
+            ? Colors.white
+            : AppColors.gold.withOpacity(0.03),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: notification.isRead ? Colors.grey[200]! : AppColors.gold.withOpacity(0.3),
-          width: notification.isRead ? 1 : 2,
+          color: notification.isRead
+              ? AppColors.silver.withOpacity(0.5)
+              : AppColors.gold.withOpacity(0.2),
+          width: notification.isRead ? 1 : 1.5,
         ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.02),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
+        contentPadding: const EdgeInsets.all(20),
         leading: Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: notification.type.color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
+            color: notification.type.color.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(16),
           ),
-          child: Icon(notification.type.icon, color: notification.type.color, size: 24),
+          child: Icon(notification.type.icon,
+              color: notification.type.color, size: 24),
         ),
         title: Row(
           children: [
             Expanded(
               child: Text(
                 notification.title,
-                style: TextStyle(
-                  fontWeight: notification.isRead ? FontWeight.w600 : FontWeight.w800,
+                style: GoogleFonts.plusJakartaSans(
+                  fontWeight:
+                      notification.isRead ? FontWeight.w700 : FontWeight.w900,
                   fontSize: 14,
+                  color: AppColors.burgundy,
                 ),
               ),
             ),
@@ -117,7 +221,7 @@ class _NotificationCard extends StatelessWidget {
                 width: 8,
                 height: 8,
                 decoration: const BoxDecoration(
-                  color: AppColors.burgundy,
+                  color: AppColors.gold,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -126,15 +230,23 @@ class _NotificationCard extends StatelessWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 6),
-            Text(
-              notification.message,
-              style: TextStyle(fontSize: 13, color: Colors.grey[700]),
-            ),
             const SizedBox(height: 8),
             Text(
-              _formatTime(notification.timestamp),
-              style: TextStyle(fontSize: 11, color: Colors.grey[400], fontWeight: FontWeight.w600),
+              notification.message,
+              style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.w500,
+                  height: 1.4),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              _formatTime(notification.timestamp).toUpperCase(),
+              style: GoogleFonts.plusJakartaSans(
+                  fontSize: 10,
+                  color: Colors.grey[400],
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5),
             ),
           ],
         ),
