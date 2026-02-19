@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../app_state.dart';
 import '../theme.dart';
 import '../widgets/tx_tile.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../widgets/summary_card.dart';
 import '../media_service.dart';
 
@@ -290,11 +291,13 @@ class _TransactionsPageState extends State<TransactionsPage>
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.gold,
-          indicatorWeight: 3,
+          indicatorWeight: 4,
+          labelColor: AppColors.burgundy,
+          unselectedLabelColor: Colors.grey[400],
           labelStyle: GoogleFonts.plusJakartaSans(
-              fontWeight: FontWeight.w800, letterSpacing: 1, fontSize: 12),
+              fontWeight: FontWeight.w900, letterSpacing: 1, fontSize: 13),
           unselectedLabelStyle: GoogleFonts.plusJakartaSans(
-              fontWeight: FontWeight.w500, letterSpacing: 1, fontSize: 12),
+              fontWeight: FontWeight.w700, letterSpacing: 1, fontSize: 13),
           tabs: const [
             Tab(text: 'HISTORY'),
             Tab(text: 'ANALYTICS'),
@@ -488,6 +491,27 @@ class _TransactionsPageState extends State<TransactionsPage>
                     ),
                   ),
                   const SizedBox(height: 32),
+                  if (byCategory.isNotEmpty) ...[
+                    Container(
+                      height: 200,
+                      padding: const EdgeInsets.all(16),
+                      child: PieChart(
+                        PieChartData(
+                          sectionsSpace: 2,
+                          centerSpaceRadius: 30,
+                          sections: byCategory.entries.map((e) {
+                            return PieChartSectionData(
+                              color: e.key.color,
+                              value: e.value.toDouble(),
+                              title: '',
+                              radius: 40,
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
                   Row(
                     children: [
                       Container(
@@ -502,7 +526,7 @@ class _TransactionsPageState extends State<TransactionsPage>
                               fontWeight: FontWeight.w900,
                               fontSize: 13,
                               letterSpacing: 1.2,
-                              color: AppColors.burgundy)),
+                              color: AppColors.burgundyDark)),
                     ],
                   ),
                   const SizedBox(height: 24),

@@ -20,9 +20,22 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _createDB,
+      onUpgrade: _onUpgrade,
     );
+  }
+
+  Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Check if mpesa_id exists before adding
+      var tableInfo = await db.rawQuery('PRAGMA table_info(transactions)');
+      bool columnExists = tableInfo.any((col) => col['name'] == 'mpesa_id');
+      if (!columnExists) {
+        await db.execute(
+            'ALTER TABLE transactions ADD COLUMN mpesa_id TEXT UNIQUE');
+      }
+    }
   }
 
   Future _createDB(Database db, int version) async {
@@ -64,9 +77,33 @@ class DatabaseHelper {
         'date': tx.date.toIso8601String(),
         'category': tx.category.name,
         'note': tx.note,
+        'mpesa_id': tx.mpesaId,
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+  }
+
+  Future<void> insertTransactionsBatch(List<TransactionItem> txs) async {
+    final db = await instance.database;
+    await db.transaction((txn) async {
+      final batch = txn.batch();
+      for (var tx in txs) {
+        batch.insert(
+          'transactions',
+          {
+            'id': tx.id,
+            'title': tx.title,
+            'amount': tx.amount,
+            'date': tx.date.toIso8601String(),
+            'category': tx.category.name,
+            'note': tx.note,
+            'mpesa_id': tx.mpesaId,
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+      await batch.commit(noResult: true);
+    });
   }
 
   Future<List<TransactionItem>> getTransactions() async {
@@ -84,6 +121,7 @@ class DatabaseHelper {
                 orElse: () => TxCategory.other,
               ),
               note: json['note'] as String?,
+              mpesaId: json['mpesa_id'] as String?,
             ))
         .toList();
   }

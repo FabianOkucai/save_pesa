@@ -43,11 +43,12 @@ class MpesaParser {
         paidRegExp.firstMatch(cleanBody) ?? sentRegExp.firstMatch(cleanBody);
     if (match != null) {
       final receiver = match.namedGroup('receiver') ?? '';
+      final amount = _parseAmount(match.namedGroup('amount')!);
       return {
         'id': match.namedGroup('id'),
-        'amount': -_parseAmount(match.namedGroup('amount')!),
+        'amount': -amount,
         'title': 'Paid to $receiver',
-        'category': _guessCategory(receiver),
+        'category': _guessCategory(receiver, -amount),
         'type': 'expense',
       };
     }
@@ -56,30 +57,58 @@ class MpesaParser {
   }
 
   static int _parseAmount(String val) {
-    return (double.parse(val.replaceAll(',', ''))).round();
+    try {
+      return (double.tryParse(val.replaceAll(',', '')) ?? 0.0).round();
+    } catch (_) {
+      return 0;
+    }
   }
 
-  static TxCategory _guessCategory(String receiver) {
+  static TxCategory _guessCategory(String receiver, int amount) {
     receiver = receiver.toUpperCase();
+    final absAmount = amount.abs();
+
+    // Amount based guessing for small transactions (1-250 KES)
+    if (absAmount > 0 && absAmount <= 250) {
+      if (receiver.contains('SAFARICON') || receiver.contains('AIRTIME')) {
+        return TxCategory
+            .entertainment; // Using entertainment as a proxy for airtime/small digital spends
+      }
+      return TxCategory.food;
+    }
+
     if (receiver.contains('NAIVAS') ||
         receiver.contains('QUICKMART') ||
-        receiver.contains('CARREFOUR')) {
+        receiver.contains('CARREFOUR') ||
+        receiver.contains('CHANDARANA') ||
+        receiver.contains('TUSKYS')) {
       return TxCategory.shopping;
     }
     if (receiver.contains('SHELL') ||
         receiver.contains('TOTAL') ||
         receiver.contains('RUBIS') ||
         receiver.contains('BOLT') ||
-        receiver.contains('UBER')) {
+        receiver.contains('UBER') ||
+        receiver.contains('MATATU') ||
+        receiver.contains('PSV')) {
       return TxCategory.transport;
     }
     if (receiver.contains('KFC') ||
         receiver.contains('JAVA') ||
-        receiver.contains('CHICKEN INN')) {
+        receiver.contains('CHICKEN INN') ||
+        receiver.contains('PIZZA INN') ||
+        receiver.contains('GALITOS')) {
       return TxCategory.food;
     }
-    if (receiver.contains('HOSPITAL') || receiver.contains('PHARMACY')) {
+    if (receiver.contains('HOSPITAL') ||
+        receiver.contains('PHARMACY') ||
+        receiver.contains('CLINIC')) {
       return TxCategory.health;
+    }
+    if (receiver.contains('NETFLIX') ||
+        receiver.contains('SPOTIFY') ||
+        receiver.contains('SHOWMAX')) {
+      return TxCategory.entertainment;
     }
     return TxCategory.other;
   }

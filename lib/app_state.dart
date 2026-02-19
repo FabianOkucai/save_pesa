@@ -144,14 +144,9 @@ class GoalItem {
 
 class AppState extends ChangeNotifier {
   static String get baseUrl {
-    if (kIsWeb) {
-      // On web, localhost is usually correct for dev
-      return 'http://localhost:5000/api';
-    }
-
-    // For Android/Emulator, try the standard bridge.
-    // Fallback logic exists in the login/register methods.
-    return 'http://10.0.2.2:5000/api';
+    // For physical devices, use your computer's local IP address
+    // Make sure your phone and PC are on the same Wi-Fi network
+    return 'http://10.185.40.230:5000/api';
   }
 
   bool isLoggedIn = false;
@@ -183,18 +178,23 @@ class AppState extends ChangeNotifier {
       isBiometricEnabled = prefs.getBool('biometric') ?? false;
       profilePic = prefs.getString('profilePic');
     } catch (e) {
-      debugPrint('SharedPreferences init error: $e');
-      // If plugin fails, we can't load stored session, but we shouldn't crash
-      isLoggedIn = false;
+      debugPrint('AppState: SharedPreferences error: $e');
     }
 
-    await loadLocalData();
+    try {
+      await loadLocalData();
+    } catch (e) {
+      debugPrint('AppState: loadLocalData error: $e');
+    }
+
+    notifyListeners(); // Notify as soon as local data is ready
+  }
+
+  void startAutomation() {
     if (isLoggedIn) {
-      // Don't wait for sync during init to avoid splash hang
-      syncWithBackend();
+      syncWithBackend(); // Sync after successful splash/auth
       AutomationService.instance.initialize();
     }
-    notifyListeners();
   }
 
   Future<void> loadLocalData() async {
@@ -312,15 +312,23 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> clearSession() async {
+    isLoggedIn = false;
+    _token = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token');
+    notifyListeners();
+  }
+
   // --- Transactions ---
 
   Future<void> addTransaction(String title, int amount, TxCategory category,
-      {String? note, String? mpesaId}) async {
+      {String? note, String? mpesaId, DateTime? date}) async {
     final tx = TransactionItem(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: mpesaId ?? DateTime.now().millisecondsSinceEpoch.toString(),
       title: title,
       amount: amount,
-      date: DateTime.now(),
+      date: date ?? DateTime.now(),
       category: category,
       note: note,
       mpesaId: mpesaId,
@@ -329,6 +337,28 @@ class AppState extends ChangeNotifier {
     transactions.insert(0, tx);
     await DatabaseHelper.instance.insertTransaction(tx);
     notifyListeners();
+    syncWithBackend();
+  }
+
+  Future<void> addTransactionsBatch(List<TransactionItem> newTxs) async {
+    if (newTxs.isEmpty) return;
+
+    // Filter out duplicates that might already be in our list
+    final existingIds = transactions.map((t) => t.mpesaId).toSet();
+    final uniqueNewTxs =
+        newTxs.where((t) => !existingIds.contains(t.mpesaId)).toList();
+
+    if (uniqueNewTxs.isEmpty) return;
+
+    transactions.addAll(uniqueNewTxs);
+    // Sort by date descending
+    transactions.sort((a, b) => b.date.compareTo(a.date));
+
+    // Batch insert into database
+    await DatabaseHelper.instance.insertTransactionsBatch(uniqueNewTxs);
+
+    notifyListeners();
+    // Sync once at the end
     syncWithBackend();
   }
 

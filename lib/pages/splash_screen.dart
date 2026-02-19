@@ -31,37 +31,51 @@ class _SplashScreenState extends State<SplashScreen>
     _handleNavigation();
   }
 
+  bool _authFailed = false;
+
   Future<void> _handleNavigation() async {
-    await Future.delayed(const Duration(milliseconds: 2000));
+    print('SplashScreen: Waiting 1.5s delay...');
+    await Future.delayed(const Duration(milliseconds: 1500));
     if (!mounted) return;
 
+    print(
+        'SplashScreen: Checking login status... (isLoggedIn: ${appState.isLoggedIn})');
     if (appState.isLoggedIn) {
-      // WhatsApp-like persistent login + Biometric check if enabled
-      bool authenticated = true;
       if (appState.isBiometricEnabled) {
-        authenticated = await SecurityService.instance.authenticate();
-      }
-
-      if (authenticated && mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const MainNavigation()),
-        );
-      } else if (mounted) {
-        // Stay here or show retry if biometric was canceled
-        setState(() {
-          // You could show a "Tap to retry" button here
-        });
+        print('SplashScreen: Biometric enabled, authenticating...');
+        final authenticated = await SecurityService.instance.authenticate();
+        print('SplashScreen: Biometric result: $authenticated');
+        if (authenticated && mounted) {
+          _proceed();
+        } else if (mounted) {
+          setState(() => _authFailed = true);
+        }
+      } else {
+        _proceed();
       }
     } else {
-      Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (_, __, ___) => const LoginPage(),
-          transitionsBuilder: (_, anim, __, child) =>
-              FadeTransition(opacity: anim, child: child),
-          transitionDuration: const Duration(milliseconds: 600),
-        ),
-      );
+      _goToLogin();
     }
+  }
+
+  void _proceed() {
+    print('SplashScreen: Navigating to MainNavigation');
+    appState.startAutomation();
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const MainNavigation()),
+    );
+  }
+
+  void _goToLogin() {
+    print('SplashScreen: Navigating to LoginPage');
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => const LoginPage(),
+        transitionsBuilder: (_, anim, __, child) =>
+            FadeTransition(opacity: anim, child: child),
+        transitionDuration: const Duration(milliseconds: 600),
+      ),
+    );
   }
 
   @override
@@ -124,14 +138,38 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                   ),
                   const SizedBox(height: 60),
-                  SizedBox(
-                    width: 28,
-                    height: 28,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white.withOpacity(0.5),
+                  if (_authFailed)
+                    Column(
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() => _authFailed = false);
+                            _handleNavigation();
+                          },
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.gold,
+                              foregroundColor: AppColors.burgundy),
+                          child: const Text('RETRY BIOMETRICS'),
+                        ),
+                        TextButton(
+                          onPressed: () async {
+                            await appState.clearSession();
+                            _goToLogin();
+                          },
+                          child: const Text('ENTER PIN / LOGIN MANUALLY',
+                              style: TextStyle(color: Colors.white70)),
+                        ),
+                      ],
+                    )
+                  else
+                    SizedBox(
+                      width: 28,
+                      height: 28,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white.withOpacity(0.5),
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),

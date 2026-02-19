@@ -8,6 +8,7 @@ import '../widgets/summary_card.dart';
 import '../models/notification.dart';
 import 'notifications_page.dart';
 import 'insights_page.dart';
+import '../ai_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -37,14 +38,11 @@ class _HomePageState extends State<HomePage> {
     return txs.take(5).toList();
   }
 
-  String _getMotivationalMessage() {
-    if (appState.goals.isEmpty) return 'Set your first savings goal!';
-    final topGoal = appState.goals.first;
-    final progress = (topGoal.saved / topGoal.target * 100).round();
-    if (progress >= 80) return '🎉 Almost there! $progress% to ${topGoal.name}';
-    if (progress >= 50) return '💪 Halfway to ${topGoal.name}!';
-    if (appState.balance > 0) return '✨ Keep saving, you\'re doing great!';
-    return '🚀 Start your savings journey today!';
+  Future<String> _getAIAdviceSnippet() async {
+    final advice = await AIService.instance
+        .getFinancialAdvice(appState.transactions, appState.goals);
+    final firstLine = advice.split('\n\n').first;
+    return firstLine.replaceAll('**', ''); // Remove markdown for snippet
   }
 
   int _getBalanceTrend() {
@@ -562,35 +560,38 @@ class _HomePageState extends State<HomePage> {
 
                 // ── Motivational Message ──────────────────────────────────────
                 SliverToBoxAdapter(
-                  child: Container(
-                    margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          AppColors.gold.withOpacity(0.1),
-                          AppColors.burgundy.withOpacity(0.05)
+                  child: FutureBuilder<String>(
+                    future: _getAIAdviceSnippet(),
+                    builder: (context, snapshot) => Container(
+                      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.gold.withOpacity(0.15),
+                            AppColors.burgundy.withOpacity(0.08)
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        border:
+                            Border.all(color: AppColors.gold.withOpacity(0.4)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.auto_awesome,
+                              color: AppColors.gold, size: 24),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              snapshot.data ?? 'Analyzing your finances...',
+                              style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.burgundy),
+                            ),
+                          ),
                         ],
                       ),
-                      borderRadius: BorderRadius.circular(16),
-                      border:
-                          Border.all(color: AppColors.gold.withOpacity(0.3)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.lightbulb_outline,
-                            color: AppColors.gold, size: 24),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            _getMotivationalMessage(),
-                            style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.burgundy),
-                          ),
-                        ),
-                      ],
                     ),
                   ),
                 ),
@@ -648,9 +649,9 @@ class _HomePageState extends State<HomePage> {
                                 'ACTIVE GOALS',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  fontWeight: FontWeight.w800,
+                                  fontWeight: FontWeight.w900,
                                   letterSpacing: 1.2,
-                                  color: AppColors.burgundy.withOpacity(0.8),
+                                  color: AppColors.burgundyDark,
                                 ),
                               ),
                             ],
@@ -764,9 +765,9 @@ class _HomePageState extends State<HomePage> {
                             'SPENDING BY CATEGORY',
                             style: TextStyle(
                               fontSize: 12,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w900,
                               letterSpacing: 1.2,
-                              color: AppColors.burgundy.withOpacity(0.8),
+                              color: AppColors.burgundyDark,
                             ),
                           ),
                         ],
@@ -821,9 +822,9 @@ class _HomePageState extends State<HomePage> {
                               'RECENT TRANSACTIONS',
                               style: TextStyle(
                                 fontSize: 12,
-                                fontWeight: FontWeight.w800,
+                                fontWeight: FontWeight.w900,
                                 letterSpacing: 1.2,
-                                color: AppColors.burgundy.withOpacity(0.8),
+                                color: AppColors.burgundyDark,
                               ),
                             ),
                           ],

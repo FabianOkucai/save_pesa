@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../app_state.dart';
 import '../theme.dart';
+import 'package:fl_chart/fl_chart.dart';
+import '../ai_service.dart';
 
 class InsightsPage extends StatelessWidget {
   const InsightsPage({super.key});
@@ -35,10 +37,6 @@ class InsightsPage extends StatelessWidget {
           final savingsRate = appState.totalIncome == 0
               ? 0
               : ((appState.balance / appState.totalIncome) * 100).round();
-          final topCategory = appState.expenseByCategory.entries.isEmpty
-              ? null
-              : appState.expenseByCategory.entries
-                  .reduce((a, b) => a.value > b.value ? a : b);
 
           return ListView(
             padding: const EdgeInsets.all(20),
@@ -73,89 +71,116 @@ class InsightsPage extends StatelessWidget {
                 subtitle: 'Of total inflow',
                 color: AppColors.gold,
               ),
-              if (topCategory != null)
-                _InsightCard(
-                  icon: topCategory.key.icon,
-                  title: 'TOP SPENDING',
-                  value: topCategory.key.label,
-                  subtitle:
-                      '${appState.currency} ${topCategory.value.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}',
-                  color: topCategory.key.color,
-                ),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(28),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.burgundy, AppColors.burgundyDark],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+              const SizedBox(height: 24),
+              // Category Distribution Graph
+              if (appState.expenseByCategory.isNotEmpty) ...[
+                Text(
+                  'EXPENSE DISTRIBUTION',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.5,
+                    color: AppColors.burgundy.withOpacity(0.8),
                   ),
-                  borderRadius: BorderRadius.circular(32),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.burgundy.withOpacity(0.2),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.auto_awesome,
-                            color: AppColors.gold, size: 24),
-                        const SizedBox(width: 12),
-                        Text(
-                          'SMART TIPS',
-                          style: GoogleFonts.plusJakartaSans(
+                const SizedBox(height: 16),
+                Container(
+                  height: 240,
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(28),
+                    border:
+                        Border.all(color: AppColors.silver.withOpacity(0.5)),
+                  ),
+                  child: PieChart(
+                    PieChartData(
+                      sectionsSpace: 4,
+                      centerSpaceRadius: 40,
+                      sections: appState.expenseByCategory.entries.map((e) {
+                        return PieChartSectionData(
+                          color: e.key.color,
+                          value: e.value.toDouble(),
+                          title:
+                              '${(e.value / appState.totalExpenses.abs() * 100).toStringAsFixed(0)}%',
+                          radius: 50,
+                          titleStyle: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
                             color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.5,
                           ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
+              const SizedBox(height: 12),
+              FutureBuilder<String>(
+                future: AIService.instance
+                    .getFinancialAdvice(appState.transactions, appState.goals),
+                builder: (context, snapshot) {
+                  return Container(
+                    padding: const EdgeInsets.all(28),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [AppColors.burgundy, AppColors.burgundyDark],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(32),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.burgundy.withOpacity(0.2),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
-                    _buildTip('💡', 'Aim to save 20% of every income.'),
-                    _buildTip('📊', 'Identify your largest expense category.'),
-                    _buildTip(
-                        '🎯', 'Set specific goals to increase discipline.'),
-                    _buildTip('⚡', 'Small changes lead to big growth.'),
-                  ],
-                ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.auto_awesome,
+                                color: AppColors.gold, size: 24),
+                            const SizedBox(width: 12),
+                            Text(
+                              'AI FINANCIAL ADVISOR',
+                              style: GoogleFonts.plusJakartaSans(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        if (snapshot.connectionState == ConnectionState.waiting)
+                          const Center(
+                              child: CircularProgressIndicator(
+                                  color: Colors.white))
+                        else
+                          Text(
+                            snapshot.data ?? 'No advice available yet.',
+                            style: GoogleFonts.plusJakartaSans(
+                              color: Colors.white.withOpacity(0.95),
+                              fontSize: 14,
+                              height: 1.6,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 100),
             ],
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildTip(String emoji, String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(emoji, style: const TextStyle(fontSize: 18)),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              text,
-              style: GoogleFonts.plusJakartaSans(
-                color: Colors.white.withOpacity(0.9),
-                fontSize: 13,
-                height: 1.5,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
